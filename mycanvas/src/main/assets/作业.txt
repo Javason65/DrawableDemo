@@ -1,0 +1,117 @@
+1. 完成动画部分
+
+参考代码
+private ValueAnimator createAnimator(final int drawType,
+                                         long duration, TimeInterpolator interpo) {
+        ValueAnimator anim = ValueAnimator.ofFloat(0.0f, 1.0f);
+        anim.addUpdateListener(new AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float value = (Float) animation.getAnimatedValue();
+
+                mAnimState = drawType;
+                mScale = value;
+                invalidateSelf();
+            }
+        });
+
+        anim.setDuration(duration);
+        anim.setInterpolator(interpo);
+        return anim;
+    }
+
+    public void start() {
+        ValueAnimator circleAnim;
+        ValueAnimator cleanningAnim;
+
+        stop();
+        circleAnim = ValueAnimator.ofFloat(0.0f, 1.0f);
+        circleAnim.addUpdateListener(new AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float value = (Float) animation.getAnimatedValue();
+
+                mAnimState = STATE_ROTATE;
+                mRotateDegreeScale = value;
+                mCleanningScale = 1.0f;
+                invalidateSelf();
+            }
+        });
+
+        circleAnim.setDuration(DURATION_ROTATE);
+        circleAnim.setInterpolator(fast_out_slow_in);
+
+        cleanningAnim = ValueAnimator.ofFloat(1.0f, 0.0f);
+        cleanningAnim.addUpdateListener(new AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float value = (Float) animation.getAnimatedValue();
+                mAnimState = STATE_ROTATE;
+                mCleanningScale = value;
+                invalidateSelf();
+            }
+        });
+
+        cleanningAnim.setDuration(DURATION_CLEANNING);
+        cleanningAnim.setStartDelay(DURATION_CLEANNING_DELAY);
+        cleanningAnim.setInterpolator(fast_out_linear_in);
+
+        AnimatorSet beginAnimSet = new AnimatorSet();
+        beginAnimSet.playTogether(circleAnim, cleanningAnim);
+
+        //up animator
+        ValueAnimator poiontUpAnim = createAnimator(
+                STATE_UP, DURATION_POINT_UP, fast_out_slow_in);
+
+        //down animator
+        ValueAnimator pointDownAnim = createAnimator(
+                STATE_DOWN, DURATION_POINT_DOWN, fast_out_slow_in);
+
+        //right animator
+        ValueAnimator finishAnim = createAnimator(
+                STATE_FINISH, DURATION_FINISH, fast_out_slow_in);
+
+        ValueAnimator delayAnim = ValueAnimator.ofInt(0, 0);
+        delayAnim.addListener(new AnimatorListener() {
+
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mAnimState = STATE_ORIGIN;
+                invalidateSelf();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+        });
+        delayAnim.setDuration(DURATION_ORIGIN_DELAY);
+
+        mAnimatorSet = new AnimatorSet();
+        mAnimatorSet.playSequentially(
+                beginAnimSet, poiontUpAnim, pointDownAnim, finishAnim, delayAnim);
+        mAnimatorSet.start();
+    }
+
+    public void stop() {
+        if (null != mAnimatorSet) {
+            mAnimatorSet.cancel();
+            mAnimatorSet = null;
+        }
+
+        mAnimState = STATE_ORIGIN;
+        invalidateSelf();
+    }
