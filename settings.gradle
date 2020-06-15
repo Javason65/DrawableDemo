@@ -1,0 +1,4 @@
+rootProject.name='FlowLayout'
+include ':app'
+include ':propertyanimation'
+include ':mycanvas'
